@@ -19,5 +19,9 @@ class Weather:
         #
         #
         # TODO: Process incoming weather messages. Set the temperature and status.
-        #
-        #
+        try:
+            value = json.loads(message.value())
+            self.temperature = value['temperature']
+            self.status = value['status']
+        except Exception as e:
+            logger.fatal(f"Weather issues: {value} {e}")
