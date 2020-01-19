@@ -60,7 +60,7 @@ class Weather(Producer):
         # replicas
         #
         #
-        self.topic_name =f"com.udacity.proyect1.weather"
+        self.topic_name =f"com.udacity.project1.weather"
         super().__init__(
             self.topic_name, # TODO: Come up with a better topic name
             key_schema=Weather.key_schema,

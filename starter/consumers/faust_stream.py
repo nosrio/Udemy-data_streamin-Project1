@@ -33,16 +33,15 @@ class TransformedStation(faust.Record):
 #   places it into a new topic with only the necessary information.
 app = faust.App("stations-stream", broker="kafka://localhost:9092", store="memory://")
 # TODO: Define the input Kafka Topic. Hint: What topic did Kafka Connect output to?
-topic = app.topic("com.udacity.project1.station", value_type=Station)
+topic = app.topic("com.udacity.project1.stations", value_type=Station)
 # TODO: Define the output Kafka Topic
 out_topic = app.topic("com.udacity.project1.station-transform", value_type=TransformedStation, partitions=1)
-changelog = app.topic("com.udacity.project1.station-changelog")
 # TODO: Define a Faust Table
 table = app.Table(
     "station-table",
     default=str,
     partitions=1,
-    changelog_topic=changelog,
+    changelog_topic=out_topic,
 )
 
 
@@ -55,19 +54,21 @@ table = app.Table(
 async def station(stations):
 
     async for station in stations:
-        transformedstation = TransformedStation()
-        transformedstation.station_id = station.station_id
-        transformedstation.station_name = station.station_name
-        transformedstation.order = station.order
+        line = ""
         if(station.red):
-            transformedstation.line = "red"
+            line = "red"
         elif(station.blue):
-            transformedstation.line = "blue"
+            line = "blue"
         elif(station.green):
-            transformedstation.line = "green"
+            line = "green"
+            
+        transformedstation = TransformedStation(station_id = station.station_id,
+                                                station_name = station.station_name,
+                                                order = station.order,
+                                                line = line)
         
-        await out_topic.send(key=transformedstation.station_id,value=transformedstation)
-        
+        #await out_topic.send(key=transformedstation.station_id,value=transformedstation)
+        table[station.station_id] = transformedstation
     
 if __name__ == "__main__":
     app.main()
